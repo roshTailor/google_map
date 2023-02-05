@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_map/screen/permission.dart';
 import 'package:google_map/screen/simpleMap.dart';
 
 void main() {
@@ -7,7 +8,7 @@ void main() {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const SimpleMap(),
+      home: const RunTimePer(),
     ),
   );
 }

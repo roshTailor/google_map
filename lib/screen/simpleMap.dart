@@ -14,6 +14,7 @@ class SimpleMap extends StatefulWidget {
 class _SimpleMapState extends State<SimpleMap> {
   Completer<GoogleMapController> _controller = Completer();
   static final LatLng _kMapCenter = LatLng(19.018255973653343, 72.84793849278007);
+  
 
   static final CameraPosition _kInitialPosition = CameraPosition(target: _kMapCenter, zoom: 11.0, tilt: 0, bearing: 0);
 
