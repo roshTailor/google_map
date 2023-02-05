@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -10,16 +9,87 @@ class RunTimePer extends StatefulWidget {
 }
 
 class _RunTimePerState extends State<RunTimePer> {
+  late final Permission _permission;
+  PermissionStatus _permissionStatus = PermissionStatus.denied;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: ListView(
-            children: Permission.values
-                .map((permission) => PermissionWidget(permission))
-                .toList()),
+      appBar: AppBar(
+        title: const Text("Get run time permission"),
+      ),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text("${Permission.camera}"),
+            subtitle: Text(_permissionStatus.toString()),
+            trailing: (Permission.camera is PermissionWithService)
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () {
+                      checkServiceStatus(context, Permission.camera as PermissionWithService);
+                    })
+                : null,
+            onTap: () {
+              requestPermission();
+            },
+          ),
+          ListTile(
+            title: Text("${Permission.location}"),
+            subtitle: Text(_permissionStatus.toString()),
+            trailing: (Permission.location is PermissionWithService)
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () {
+                      checkServiceStatus(context, Permission.location);
+                    })
+                : null,
+            onTap: () {
+              requestPermission();
+            },
+          ),
+          ListTile(
+            title: Text("${Permission.storage}"),
+            subtitle: Text(_permissionStatus.toString()),
+            trailing: (Permission.storage is PermissionWithService)
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () {
+                      checkServiceStatus(context, Permission.storage as PermissionWithService);
+                    })
+                : null,
+            onTap: () {
+              requestPermission();
+            },
+          ),
+        ],
+
+        // child: ListView(children: Permission.values.map((permission) => PermissionWidget(permission)).toList()),
       ),
     );
+  }
+
+  void checkServiceStatus(BuildContext context, PermissionWithService permission) async {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text((await permission.serviceStatus).toString()),
+    ));
+  }
+
+  requestPermission() async {
+    final status = await _permission.request();
+    setState(() {
+      print(status);
+      _permissionStatus = status;
+      print(_permissionStatus);
+    });
   }
 }
 
@@ -82,8 +152,7 @@ class _PermissionState extends State<PermissionWidget> {
                 color: Colors.black87,
               ),
               onPressed: () {
-                checkServiceStatus(
-                    context, _permission as PermissionWithService);
+                checkServiceStatus(context, _permission as PermissionWithService);
               })
           : null,
       onTap: () {
@@ -92,8 +161,7 @@ class _PermissionState extends State<PermissionWidget> {
     );
   }
 
-  void checkServiceStatus(
-      BuildContext context, PermissionWithService permission) async {
+  void checkServiceStatus(BuildContext context, PermissionWithService permission) async {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text((await permission.serviceStatus).toString()),
     ));
