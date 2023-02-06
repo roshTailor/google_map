@@ -9,6 +9,7 @@ void main() {
         primarySwatch: Colors.blue,
       ),
       home: const RunTimePer(),
+      debugShowCheckedModeBanner: false,
     ),
   );
 }
