@@ -9,8 +9,9 @@ class RunTimePer extends StatefulWidget {
 }
 
 class _RunTimePerState extends State<RunTimePer> {
-  late final Permission _permission;
-  PermissionStatus _permissionStatus = PermissionStatus.denied;
+  PermissionStatus _permissionCameraStatus = PermissionStatus.denied;
+  PermissionStatus _permissionStorageStatus = PermissionStatus.denied;
+  PermissionStatus _permissionLocationStatus = PermissionStatus.denied;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,53 +22,59 @@ class _RunTimePerState extends State<RunTimePer> {
         children: [
           ListTile(
             title: Text("${Permission.camera}"),
-            subtitle: Text(_permissionStatus.toString()),
-            trailing: (Permission.camera is PermissionWithService)
+            subtitle: Text(_permissionCameraStatus.toString()),
+            trailing: (_permissionCameraStatus.isGranted)
                 ? IconButton(
                     icon: const Icon(
                       Icons.info_outline_rounded,
                       color: Colors.black87,
                     ),
-                    onPressed: () {
-                      checkServiceStatus(context, Permission.camera as PermissionWithService);
+                    onPressed: () async {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text((await Permission.camera.status).toString()),
+                      ));
                     })
                 : null,
             onTap: () {
-              requestPermission();
+              requestCameraPermission();
             },
           ),
           ListTile(
             title: Text("${Permission.location}"),
-            subtitle: Text(_permissionStatus.toString()),
+            subtitle: Text(_permissionLocationStatus.toString()),
             trailing: (Permission.location is PermissionWithService)
                 ? IconButton(
                     icon: const Icon(
                       Icons.info_outline_rounded,
                       color: Colors.black87,
                     ),
-                    onPressed: () {
-                      checkServiceStatus(context, Permission.location);
+                    onPressed: () async {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text((await Permission.location.status).toString()),
+                      ));
                     })
                 : null,
             onTap: () {
-              requestPermission();
+              requestLocationPermission();
             },
           ),
           ListTile(
             title: Text("${Permission.storage}"),
-            subtitle: Text(_permissionStatus.toString()),
+            subtitle: Text(_permissionStorageStatus.toString()),
             trailing: (Permission.storage is PermissionWithService)
                 ? IconButton(
                     icon: const Icon(
                       Icons.info_outline_rounded,
                       color: Colors.black87,
                     ),
-                    onPressed: () {
-                      checkServiceStatus(context, Permission.storage as PermissionWithService);
+                    onPressed: () async {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text((await Permission.storage.status).toString()),
+                      ));
                     })
                 : null,
             onTap: () {
-              requestPermission();
+              requestStoragePermission();
             },
           ),
         ],
@@ -83,12 +90,42 @@ class _RunTimePerState extends State<RunTimePer> {
     ));
   }
 
-  requestPermission() async {
-    final status = await _permission.request();
+  requestCameraPermission() async {
+    final status = await Permission.camera.request();
+    if (status.isGranted) {
+    } else {
+      requestCameraPermission();
+    }
     setState(() {
       print(status);
-      _permissionStatus = status;
-      print(_permissionStatus);
+      _permissionCameraStatus = status;
+      print(_permissionCameraStatus);
+    });
+  }
+
+  requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+    } else {
+      requestCameraPermission();
+    }
+    setState(() {
+      print(status);
+      _permissionLocationStatus = status;
+      print(_permissionLocationStatus);
+    });
+  }
+
+  requestStoragePermission() async {
+    final status = await Permission.storage.request();
+    if (status.isGranted) {
+    } else {
+      requestCameraPermission();
+    }
+    setState(() {
+      print(status);
+      _permissionStorageStatus = status;
+      print(_permissionStorageStatus);
     });
   }
 }
