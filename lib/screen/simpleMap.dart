@@ -12,55 +12,63 @@ class SimpleMap extends StatefulWidget {
 }
 
 class _SimpleMapState extends State<SimpleMap> {
-  Completer<GoogleMapController> _controller = Completer();
+  static const LatLng _kMapCenter =
+      LatLng(19.018255973653343, 72.84793849278007);
 
-  static const LatLng _center = const LatLng(45.521563, -122.677433);
-  final Set<Marker> _marker = {};
-  LatLng _lastMapPosition = _center;
+  static const CameraPosition _kInitialPosition =
+      CameraPosition(target: _kMapCenter, zoom: 11.0, tilt: 0, bearing: 0);
 
-  void _onAddMarkerButtonPressed() {
-    setState(() {
-      _marker.add(Marker(
-        // This marker id can be anything that uniquely identifies each marker.
-        markerId: MarkerId(_lastMapPosition.toString()),
-        position: _lastMapPosition,
-        infoWindow: InfoWindow(
-          title: 'Really cool place',
-          snippet: '5 Star Rating',
-        ),
-        icon: BitmapDescriptor.defaultMarker,
-      ));
-      print("$_marker");
-    });
-  }
-
-  void _onCameraMove(CameraPosition position) {
-    _lastMapPosition = position.target;
-  }
-
-  static final LatLng _kMapCenter = LatLng(19.018255973653343, 72.84793849278007);
-
-  static final CameraPosition _kInitialPosition = CameraPosition(target: _kMapCenter, zoom: 11.0, tilt: 0, bearing: 0);
-
-  void _onMapCreated(GoogleMapController controller) {
-    _controller.complete(controller);
-  }
-
-  final List<Marker> _markers = <Marker>[
-    Marker(
+  final List<Marker> _marker = <Marker>[
+    const Marker(
         markerId: MarkerId('1'),
-        position: LatLng(21.232731, 72.820853),
+        position: LatLng(20.42796133580664, 75.885749655962),
         infoWindow: InfoWindow(
           title: 'My Position',
         )),
   ];
 
+  // created method for getting user current location
   Future<Position> getUserCurrentLocation() async {
-    await Geolocator.requestPermission().then((value) {}).onError((error, stackTrace) async {
+    await Geolocator.requestPermission()
+        .then((value) {})
+        .onError((error, stackTrace) async {
       await Geolocator.requestPermission();
       print("ERROR$error");
     });
     return await Geolocator.getCurrentPosition();
+  }
+
+  // late GoogleMapController mapController;
+  final Completer<GoogleMapController> _controller = Completer();
+
+  void _onMapCreated(GoogleMapController controller) {
+    _controller.complete(controller);
+  }
+
+  static const LatLng _center = LatLng(45.521563, -122.677433);
+
+  MapType _currentMapType = MapType.normal;
+  final Set<Marker> _markers = {};
+  LatLng _lastMapPosition = _center;
+
+  void _onCameraMove(CameraPosition position) {
+    _lastMapPosition = position.target;
+  }
+
+  void _onAddMarkerButtonPressed() {
+    setState(() {
+      _markers.add(Marker(
+        // This marker id can be anything that uniquely identifies each marker.
+        markerId: MarkerId(_lastMapPosition.toString()),
+        position: _lastMapPosition,
+        infoWindow: const InfoWindow(
+          title: 'Really cool place',
+          snippet: '5 Star Rating',
+        ),
+        icon: BitmapDescriptor.defaultMarker,
+      ));
+      print(_markers);
+    });
   }
 
   @override
@@ -73,12 +81,12 @@ class _SimpleMapState extends State<SimpleMap> {
         children: [
           GoogleMap(
             onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 11.0,
-            ),
-            markers: _marker,
+            initialCameraPosition: const CameraPosition(
+                target: _kMapCenter, zoom: 11.0, tilt: 0, bearing: 0),
+            mapType: _currentMapType,
+            markers: _markers,
             onCameraMove: _onCameraMove,
+            myLocationEnabled: true,
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -87,7 +95,13 @@ class _SimpleMapState extends State<SimpleMap> {
               child: Column(
                 children: <Widget>[
                   FloatingActionButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        _currentMapType = _currentMapType == MapType.normal
+                            ? MapType.terrain
+                            : MapType.normal;
+                      });
+                    },
                     materialTapTargetSize: MaterialTapTargetSize.padded,
                     backgroundColor: Colors.green,
                     child: const Icon(Icons.map, size: 36.0),
@@ -105,33 +119,32 @@ class _SimpleMapState extends State<SimpleMap> {
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () async {
-      //     getUserCurrentLocation().then((value) async {
-      //       print("${value.latitude} ${value.longitude}");
-      //
-      //       // marker added for current users location
-      //       _markers.add(Marker(
-      //         markerId: MarkerId("2"),
-      //         position: LatLng(value.latitude, value.longitude),
-      //         infoWindow: const InfoWindow(
-      //           title: 'My Current Location',
-      //         ),
-      //       ));
-      //
-      //       // specified current users location
-      //       CameraPosition cameraPosition = CameraPosition(
-      //         target: LatLng(value.latitude, value.longitude),
-      //         zoom: 14,
-      //       );
-      //
-      //       final GoogleMapController controller = await _controller.future;
-      //       controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-      //       setState(() {});
-      //     });
-      //   },
-      //   child: const Icon(Icons.local_activity),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          getUserCurrentLocation().then((value) async {
+            print("${value.latitude} ${value.longitude}");
+            // marker added for current users location
+            _marker.add(Marker(
+              markerId: MarkerId("2"),
+              position: LatLng(value.latitude, value.longitude),
+              infoWindow: const InfoWindow(
+                title: 'My Current Location',
+              ),
+            ));
+            // specified current users location
+            CameraPosition cameraPosition = CameraPosition(
+              target: LatLng(value.latitude, value.longitude),
+              zoom: 14,
+            );
+
+            final GoogleMapController controller = await _controller.future;
+            controller
+                .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+            setState(() {});
+          });
+        },
+        child: const Icon(Icons.local_activity),
+      ),
     );
   }
 }
